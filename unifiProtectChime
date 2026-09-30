@@ -18,6 +18,7 @@ limitations under the License.
 
 Change history:
 
+1.4.9 - almulder - processEvent() no longer sends an empty event
 1.4.4 - tomw - Support chimes and viewports
 
 */

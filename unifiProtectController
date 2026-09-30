@@ -18,6 +18,7 @@ limitations under the License.
 
 Change history:
 
+1.4.9 - almulder - Bugfix for "MethodPointerExpression is not allowed" save error on newer Hubitat firmware.  httpExec() now calls httpGet/httpPost/httpPatch directly
 1.4.7 - tomw - Bugfixes for missing smart detect events
 1.4.6 - tomw - Bugfix for UniFi OS 3.2.x
 1.4.5 - tomw - Bugfixes for motion on Lights
