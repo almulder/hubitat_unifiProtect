@@ -590,22 +590,19 @@ def httpExec(operation, params)
         //logDebug("result.data = ${result.data}")
     }
     
-    def httpOp
-    
     switch(operation)
     {
         case "PATCH":
-            httpOp = this.delegate.&httpPatch
+            httpPatch(params, httpClosure)
             break
         case "POST":
-            httpOp = this.delegate.&httpPost
+            httpPost(params, httpClosure)
             break
         case "GET":
-            httpOp = this.delegate.&httpGet
+            httpGet(params, httpClosure)
             break
     }
     
-    httpOp(params, httpClosure)
     return result
 }
 
