@@ -91,9 +91,9 @@ def off()
     operateLight(false)
 }
 
-def operateLight(state)
+def operateLight(isOn)
 {
-    updateLight([lightOnSettings: [isLedForceOn: state]])
+    updateLight([lightOnSettings: [isLedForceOn: isOn]])
 }
 
 def setLevel(level)

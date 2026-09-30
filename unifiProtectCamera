@@ -161,7 +161,7 @@ def checkCamInfo(ffPath)
         return state.getAt(ffPath)
     }
     
-    def cam = getParent()?.getBootstrap()?.cameras.find() { it.id == getCameraId() }
+    def cam = getParent()?.getBootstrap()?.cameras?.find { it.id == getCameraId() }
     if(cam)
     {
         def val = cam.featureFlags?.getAt(ffPath)

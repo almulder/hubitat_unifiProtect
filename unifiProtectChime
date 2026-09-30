@@ -42,15 +42,15 @@ def processEvent(event)
         return
     }
 
-    def events = [[:]]
+    def events = []
     if(null != event.volume)
     {
         def isUnmuted = event.volume > 0
         
-        events += [name: "mute", value: isUnmuted ? "unmuted" : "muted"]
-        events += [name: "volume", value: event.volume]
+        events << [name: "mute", value: isUnmuted ? "unmuted" : "muted"]
+        events << [name: "volume", value: event.volume]
 
-        events += [name: "switch", value: isUnmuted ? "on" : "off"]
+        events << [name: "switch", value: isUnmuted ? "on" : "off"]
     }
     
     events.each
