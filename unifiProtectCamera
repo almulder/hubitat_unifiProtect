@@ -114,8 +114,6 @@ def processEvent(event)
     
     if(false == event.isSmartDetected)
     {
-        state.remove("smartDetectId")
-        state.remove("smartDetectSent")
         smartDetectEvent(null)
         return
     }
