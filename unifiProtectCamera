@@ -109,6 +109,11 @@ def processEvent(event)
         sendEvent(name: "switch", value: event.ledSettings.isEnabled ? "on" : "off")
     }
     
+    if(null != event.smartDetectTypes || null != event.isSmartDetected)
+    {
+        log.debug "DEBUG smart detect raw event: hasSmartDetect=${hasSmartDetect()} isSmartDetected=${event.isSmartDetected} smartDetectTypes=${event.smartDetectTypes} detectedAreas=${event.metadata?.detectedAreas} keys=${event.keySet()}"
+    }
+    
     if(!hasSmartDetect()) { return }
     
     if(false == event.isSmartDetected)
@@ -122,6 +127,7 @@ def processEvent(event)
         if(null != event.metadata?.detectedAreas)
         {
             // ignore extra events returned by newer versions of Protect
+            log.debug "DEBUG smart detect event DROPPED by detectedAreas filter: ${event.smartDetectTypes}"
             return
         }
         
