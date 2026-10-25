@@ -18,6 +18,7 @@ limitations under the License.
 
 Change history:
 
+1.4.11 - almulder - Full-resolution snapshots through the official integration API when a Protect API key is set on the controller (falls back to the sized snapshot otherwise)
 1.4.10 - almulder - Bugfix for person/smart detect events never arriving on newer Protect versions: replaced the detectedAreas filter with per-event-id de-duplication
 1.4.9 - almulder - Null-safe camera lookup in checkCamInfo() when bootstrap has no cameras
 1.4.8 - tomw - Bugfix for duplicate smart detect events
@@ -64,8 +65,8 @@ preferences
 {
     section
     {
-        input name: "snapWidth", type: "number", title: "snapshot width", defaultValue: 640
-        input name: "snapHeight", type: "number", title: "snapshot height", defaultValue: 360
+        input name: "snapWidth", type: "number", title: "snapshot width<br>(ignored when a Protect API key is set on the controller)", defaultValue: 640
+        input name: "snapHeight", type: "number", title: "snapshot height<br>(ignored when a Protect API key is set on the controller)", defaultValue: 360
     }
 }
 
@@ -222,14 +223,12 @@ def take(lens = "main")
 {
     try
     {
-        def stream = getParent()?.httpExecWithAuthCheck("GET", parent?.genParamsMain(getCameraSnapSuffix(lens)), true)?.data
-        
+        def stream = fetchSnapshot(lens)
+
         if(stream)
         {
-            def bSize = stream.available()
-            byte[] imageArr = new byte[bSize]
-            stream.read(imageArr, 0, bSize)
-            
+            byte[] imageArr = readStream(stream)
+
             deleteImageFile(currentImageFile())
             writeImageToFile(imageArr)
             
@@ -256,6 +255,43 @@ def take(lens = "main")
     {
         log.debug "take() failed: ${e.message}"
     }
+}
+
+def fetchSnapshot(lens = "main")
+{
+    // the official integration API ignores w/h and returns full resolution, but needs an API key.
+    //   newer Protect versions cap the private API snapshot at a small size, so prefer it when we can.
+    if("main" == lens && getParent()?.hasApiKey())
+    {
+        try
+        {
+            def stream = getParent()?.httpExec("GET", parent?.genParamsIntegration(getCameraIntegrationSnapSuffix()))?.data
+            if(stream) { return stream }
+        }
+        catch (Exception e)
+        {
+            log.warn "full-resolution snapshot failed, using standard snapshot instead: ${e.message}"
+        }
+    }
+
+    return getParent()?.httpExecWithAuthCheck("GET", parent?.genParamsMain(getCameraSnapSuffix(lens)), true)?.data
+}
+
+def readStream(stream)
+{
+    // available() doesn't always report the whole image, which matters for full-resolution snapshots
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream()
+    byte[] buffer = new byte[8192]
+
+    int count
+    while((count = stream.read(buffer)) != -1)
+    {
+        outputStream.write(buffer, 0, count)
+    }
+
+    outputStream.close()
+
+    return outputStream.toByteArray()
 }
 
 def clearImages()
@@ -311,6 +347,11 @@ def getCameraBaseUrl()
 def getCameraSnapSuffix(lens = "main")
 {
     return getCameraBaseUrl() + "/${knownLensUrls()?.getAt(lens)}?force=true&w=${snapWidth ?: 640}&h=${snapHeight ?: 360}"
+}
+
+def getCameraIntegrationSnapSuffix()
+{
+    return "/cameras/${getCameraId()}/snapshot?highQuality=true"
 }
 
 void safeSendEvent(Map event)

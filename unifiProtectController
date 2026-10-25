@@ -18,6 +18,7 @@ limitations under the License.
 
 Change history:
 
+1.4.10 - almulder - Optional Protect API key, used by cameras for full-resolution snapshots via the official integration API
 1.4.9 - almulder - Bugfix for "MethodPointerExpression is not allowed" save error on newer Hubitat firmware.  httpExec() now calls httpGet/httpPost/httpPatch directly
 1.4.7 - tomw - Bugfixes for missing smart detect events
 1.4.6 - tomw - Bugfix for UniFi OS 3.2.x
@@ -64,6 +65,10 @@ preferences
     {
         input "username", "text", title: "Username", required: true
         input "password", "password", title: "Password", required: true
+    }
+    section
+    {
+        input "protectApiKey", "password", title: "Protect API key (optional)<br>enables full-resolution camera snapshots.  Create one in UniFi OS under Settings > Control Plane > Integrations.", required: false
     }
     section
     {
@@ -167,6 +172,27 @@ def genParamsMain(suffix, body = null)
     return params
 }
 
+def hasApiKey()
+{
+    return protectApiKey ? true : false
+}
+
+def genParamsIntegration(suffix)
+{
+    // the official integration API authenticates with an API key instead of the login cookie
+    def params =
+        [
+            uri: getBaseURI() + getIntegrationSuffix() + suffix,
+            headers:
+            [
+                'X-API-KEY': protectApiKey
+            ],
+            ignoreSSLIssues: true,
+        ]
+
+    return params
+}
+
 def genHeadersWss()
 {
     def headers =
@@ -185,6 +211,11 @@ def getBaseURI()
 def getLoginSuffix()
 {
     return "/api/auth/login"
+}
+
+def getIntegrationSuffix()
+{
+    return "/proxy/protect/integration/v1"
 }
 
 def getBootstrapSuffix()
